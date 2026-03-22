@@ -84,15 +84,21 @@ SKIP_ADDRESSES = {
 }
 
 # The actual router/pool interacting with the TACHI token based on logs
+# Sender 0xdc5d8200a030798bc6227240f68b4dd9542686ef is the Router
+# Recipient 0x879bb924671d4d4c5bbd23aa98c689fef02b511d is a User wallet
 VALID_SENDERS = {
-    "0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985",
     "0xdc5d8200a030798bc6227240f68b4dd9542686ef",
 }
 
 def is_likely_buy(sender: str, recipient: str) -> bool:
-    # A true buy means the sender is an authorized pool/router
-    # AND the recipient is NOT the LP (avoiding internal pool rebalances)
-    return sender.lower() in [s.lower() for s in VALID_SENDERS] and recipient.lower() not in [s.lower() for s in SKIP_ADDRESSES] and recipient.lower() != LIQUIDITY_POOL.lower()
+    # A true buy means the sender is the Router (0xdc5d...) 
+    # AND the recipient is NOT the LP (0xeefc...)
+    is_sender_valid = sender.lower() in [s.lower() for s in VALID_SENDERS]
+    is_recipient_not_lp = recipient.lower() != LIQUIDITY_POOL.lower()
+    
+    log.info(f"DEBUG: SenderValid={is_sender_valid} RecipientNotLP={is_recipient_not_lp}")
+    
+    return is_sender_valid and is_recipient_not_lp
 
 # Price — DexScreener (free, no key needed)
 # ─────────────────────────────────────────────
