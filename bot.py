@@ -200,23 +200,34 @@ async def watcher_loop(bot: Bot):
                 await asyncio.sleep(2)
                 continue
 
-            # DEBUG: Log every transfer we see to verify filtering logic
+# DEBUG: Log every transfer we see to verify filtering logic
             log.info(f"Checking blocks {state['last_block'] + 1} to {current}")
             
-            events = contract.events.Transfer.get_logs(
-                fromBlock=state["last_block"] + 1,
-                toBlock=current,
-            )
+            try:
+                events = contract.events.Transfer.get_logs(
+                    fromBlock=state["last_block"] + 1,
+                    toBlock=current,
+                )
+            except Exception as e:
+                log.error(f"Error fetching logs: {e}")
+                events = []
 
             if events:
                 price = get_price()
                 for event in events:
-                    tx_hash   = event["transactionHash"].hex()
-                    sender    = event["args"]["from"]
-                    recipient = event["args"]["to"]
+                    # Accessing event args properly depending on Web3 version
+                    # If event args fails, log it
+                    try:
+                        tx_hash   = event["transactionHash"].hex()
+                        sender    = event["args"]["from"]
+                        recipient = event["args"]["to"]
+                        value     = event["args"]["value"]
+                    except KeyError as e:
+                        log.error(f"KeyError accessing event args: {e}")
+                        continue
 
                     # DEBUG
-                    log.info(f"Transfer found: Sender={sender} Recipient={recipient} Val={event['args']['value']}")
+                    log.info(f"Transfer found: Sender={sender} Recipient={recipient} Val={value}")
 
                     if tx_hash in seen_txs:
                         continue
