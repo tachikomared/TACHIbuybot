@@ -83,22 +83,24 @@ SKIP_ADDRESSES = {
     "0x39B4B879b8521d6A8C3a87cda64b969327b7fbA3",  # TOKEN_CA
 }
 
-# The actual router/pool interacting with the TACHI token based on logs
-# Sender 0xdc5d8200a030798bc6227240f68b4dd9542686ef is the Router
-# Recipient 0x879bb924671d4d4c5bbd23aa98c689fef02b511d is a User wallet
+# Valid Senders updated based on the log
 VALID_SENDERS = {
-    "0xdc5d8200a030798bc6227240f68b4dd9542686ef",
+    "0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985", # The Pair
+    "0x498581fF718922c3f8e6A244956aF099B2652b2b", # V4 PoolManager
+    "0xdc5d8200a030798bc6227240f68b4dd9542686ef", # The Router
 }
 
 def is_likely_buy(sender: str, recipient: str) -> bool:
-    # A true buy means the sender is the Router (0xdc5d...) 
-    # AND the recipient is NOT the LP (0xeefc...)
+    # A transfer is a buy if it involves the Pool/Manager and ends in a wallet
+    # We log the condition here to see exactly why it's failing
     is_sender_valid = sender.lower() in [s.lower() for s in VALID_SENDERS]
-    is_recipient_not_lp = recipient.lower() != LIQUIDITY_POOL.lower()
     
-    log.info(f"DEBUG: SenderValid={is_sender_valid} RecipientNotLP={is_recipient_not_lp}")
+    # Check if the recipient is a user (not a known system address)
+    is_recipient_valid = recipient.lower() not in [s.lower() for s in SKIP_ADDRESSES]
     
-    return is_sender_valid and is_recipient_not_lp
+    log.info(f"DEBUG Filter: Sender={sender} Valid={is_sender_valid} Recipient={recipient} Valid={is_recipient_valid}")
+    
+    return is_sender_valid and is_recipient_valid
 
 # Price — DexScreener (free, no key needed)
 # ─────────────────────────────────────────────
