@@ -73,12 +73,40 @@ contract = w3.eth.contract(
     }],
 )
 
-# Uniswap Pair/LP address — using string literal for safety if Web3.to_checksum_address fails
+# Uniswap Pair/LP address
 LIQUIDITY_POOL = "0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985"
 
+SKIP_ADDRESSES = {
+    "0x0000000000000000000000000000000000000000",
+    "0x000000000000000000000000000000000000dEaD",
+    "0x498581fF718922c3f8e6A244956aF099B2652b2b",  # Uniswap V4 PoolManager on Base
+    "0x39B4B879b8521d6A8C3a87cda64b969327b7fbA3",  # TOKEN_CA
+}
+
 def is_likely_buy(sender: str, recipient: str) -> bool:
-    # Use direct string comparison (lowercase)
     return sender.lower() == LIQUIDITY_POOL.lower() and recipient.lower() not in [s.lower() for s in SKIP_ADDRESSES]
+
+# Price — DexScreener (free, no key needed)
+# ─────────────────────────────────────────────
+_price_cache = {"price": 0.0, "ts": 0}
+
+def get_price() -> float:
+    now = time.time()
+    if now - _price_cache["ts"] < 30:
+        return _price_cache["price"]
+    try:
+        r = requests.get(
+            f"https://api.dexscreener.com/latest/dex/tokens/{TOKEN_CA}",
+            timeout=5,
+        )
+        pairs = r.json().get("pairs") or []
+        if pairs:
+            price = float(pairs[0].get("priceUsd", 0))
+            _price_cache.update({"price": price, "ts": now})
+            return price
+    except Exception as e:
+        log.warning(f"Price fetch failed: {e}")
+    return _price_cache["price"]
 
 # Use ALCHEMY_RPC if provided, otherwise default to public
 RPC_URL = os.environ.get("BASE_RPC", "https://mainnet.base.org")
