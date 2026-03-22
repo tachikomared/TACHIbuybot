@@ -228,6 +228,10 @@ async def watcher_loop(bot: Bot):
 
                     # DEBUG
                     log.info(f"Transfer found: Sender={sender} Recipient={recipient} Val={value}")
+                    
+                    # LOGGING THE ADDRESSES TO FIND THE MISMATCH
+                    log.info(f"LP={LIQUIDITY_POOL.lower()} Sender={sender.lower()} Recipient={recipient.lower()}")
+                    log.info(f"Condition: {sender.lower() == LIQUIDITY_POOL.lower()}")
 
                     if tx_hash in seen_txs:
                         continue
