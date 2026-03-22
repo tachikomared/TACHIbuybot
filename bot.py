@@ -222,8 +222,36 @@ async def watcher_loop(bot: Bot):
                         continue
                     if not is_likely_buy(sender, recipient):
                         continue
-                    
-                    # ...
+
+                    amount = event["args"]["value"] / (10 ** TOKEN_DECIMALS)
+                    usd    = amount * price
+
+                    if usd < state["min_usd"]:
+                        continue
+
+                    try:
+                        await bot.send_message(
+                            chat_id=CHAT_ID,
+                            text=build_message(event, tx_hash, price),
+                            parse_mode=ParseMode.MARKDOWN,
+                            disable_web_page_preview=False,
+                        )
+                        state["buys_posted"] += 1
+                        log.info(f"Buy posted ${usd:.2f} | {tx_hash}")
+                    except Exception as e:
+                        log.error(f"Send failed: {e}")
+
+                    seen_txs.add(tx_hash)
+
+            if len(seen_txs) > 5000:
+                seen_txs = set(list(seen_txs)[-2000:])
+
+            state["last_block"] = current
+
+        except Exception as e:
+            log.error(f"Watcher error: {e}")
+
+        await asyncio.sleep(3)
 
 # ─────────────────────────────────────────────
 #  Entry point
