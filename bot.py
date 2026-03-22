@@ -190,7 +190,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ─────────────────────────────────────────────
 async def watcher_loop(bot: Bot):
     log.info("Watcher started")
-    state["last_block"] = w3.eth.block_number - 10
+    state["last_block"] = w3.eth.block_number - 1
     seen_txs: set = set()
 
     while True:
@@ -200,7 +200,9 @@ async def watcher_loop(bot: Bot):
                 await asyncio.sleep(2)
                 continue
 
-            # Use get_logs() directly on the contract event
+            # DEBUG: Log every transfer we see to verify filtering logic
+            log.info(f"Checking blocks {state['last_block'] + 1} to {current}")
+            
             events = contract.events.Transfer.get_logs(
                 fromBlock=state["last_block"] + 1,
                 toBlock=current,
@@ -213,40 +215,15 @@ async def watcher_loop(bot: Bot):
                     sender    = event["args"]["from"]
                     recipient = event["args"]["to"]
 
+                    # DEBUG
+                    log.info(f"Transfer found: Sender={sender} Recipient={recipient} Val={event['args']['value']}")
+
                     if tx_hash in seen_txs:
                         continue
                     if not is_likely_buy(sender, recipient):
                         continue
-
-                    amount = event["args"]["value"] / (10 ** TOKEN_DECIMALS)
-                    usd    = amount * price
-
-                    if usd < state["min_usd"]:
-                        continue
-
-                    try:
-                        await bot.send_message(
-                            chat_id=CHAT_ID,
-                            text=build_message(event, tx_hash, price),
-                            parse_mode=ParseMode.MARKDOWN,
-                            disable_web_page_preview=False,
-                        )
-                        state["buys_posted"] += 1
-                        log.info(f"Buy posted ${usd:.2f} | {tx_hash}")
-                    except Exception as e:
-                        log.error(f"Send failed: {e}")
-
-                    seen_txs.add(tx_hash)
-
-            if len(seen_txs) > 5000:
-                seen_txs = set(list(seen_txs)[-2000:])
-
-            state["last_block"] = current
-
-        except Exception as e:
-            log.error(f"Watcher error: {e}")
-
-        await asyncio.sleep(3)
+                    
+                    # ...
 
 # ─────────────────────────────────────────────
 #  Entry point
