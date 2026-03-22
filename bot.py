@@ -76,16 +76,23 @@ contract = w3.eth.contract(
 # Uniswap Pair/LP address
 LIQUIDITY_POOL = "0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985"
 
-# Router/Pools that interact with the token
+SKIP_ADDRESSES = {
+    "0x0000000000000000000000000000000000000000",
+    "0x000000000000000000000000000000000000dEaD",
+    "0x498581fF718922c3f8e6A244956aF099B2652b2b",  # Uniswap V4 PoolManager on Base
+    "0x39B4B879b8521d6A8C3a87cda64b969327b7fbA3",  # TOKEN_CA
+}
+
+# The actual router/pool interacting with the TACHI token based on logs
 VALID_SENDERS = {
-    "0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985", # The Pair
-    "0xdc5d8200a030798bc6227240f68b4dd9542686ef", # The detected sender from logs
+    "0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985",
+    "0xdc5d8200a030798bc6227240f68b4dd9542686ef",
 }
 
 def is_likely_buy(sender: str, recipient: str) -> bool:
-    # A true buy means the sender is the LP OR an intermediary contract
-    # and the recipient is a regular wallet (not an exchange/pool)
-    return sender.lower() in [s.lower() for s in VALID_SENDERS] and recipient.lower() not in [s.lower() for s in SKIP_ADDRESSES]
+    # A true buy means the sender is an authorized pool/router
+    # AND the recipient is NOT the LP (avoiding internal pool rebalances)
+    return sender.lower() in [s.lower() for s in VALID_SENDERS] and recipient.lower() not in [s.lower() for s in SKIP_ADDRESSES] and recipient.lower() != LIQUIDITY_POOL.lower()
 
 # Price — DexScreener (free, no key needed)
 # ─────────────────────────────────────────────
