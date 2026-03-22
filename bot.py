@@ -183,11 +183,10 @@ async def watcher_loop(bot: Bot):
                 await asyncio.sleep(2)
                 continue
 
-            # Use .get_logs() directly on the contract event
-            events = contract.events.Transfer.get_logs(
+            events = contract.events.Transfer.create_filter(
                 fromBlock=state["last_block"] + 1,
                 toBlock=current,
-            )
+            ).get_all_entries()
 
             if events:
                 price = get_price()
