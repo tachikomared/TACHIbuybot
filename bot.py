@@ -73,6 +73,9 @@ contract = w3.eth.contract(
     }],
 )
 
+# Uniswap Pair/LP address
+LIQUIDITY_POOL = Web3.to_checksum_address("0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985")
+
 SKIP_ADDRESSES = {
     Web3.to_checksum_address(a) for a in [
         "0x0000000000000000000000000000000000000000",
@@ -85,7 +88,8 @@ SKIP_ADDRESSES = {
 def is_likely_buy(sender: str, recipient: str) -> bool:
     r = Web3.to_checksum_address(recipient)
     s = Web3.to_checksum_address(sender)
-    return r not in SKIP_ADDRESSES and s not in SKIP_ADDRESSES
+    # A true buy means the sender MUST be the LP
+    return s == LIQUIDITY_POOL and r not in SKIP_ADDRESSES
 
 # ─────────────────────────────────────────────
 #  Price — DexScreener (free, no key needed)
