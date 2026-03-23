@@ -110,6 +110,11 @@ def get_price() -> float:
     if now - _price_cache["ts"] < 30:
         return _price_cache["price"]
     try:
+        # Use a hardcoded full URL if BASE_RPC isn't used here, 
+        # or verify the usage of requests here.
+        # The crash might be coming from get_price() accessing an invalid URL
+        # because I might be using an environment variable somewhere else.
+        # Let's ensure this specific request is safe.
         r = requests.get(
             f"https://api.dexscreener.com/latest/dex/tokens/{TOKEN_CA}",
             timeout=5,
