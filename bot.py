@@ -129,6 +129,13 @@ def get_price() -> float:
     return _price_cache["price"]
 
 # Use ALCHEMY_RPC if provided, otherwise default to public
+BASE_RPC_RAW = os.environ.get("BASE_RPC", "https://mainnet.base.org")
+if not BASE_RPC_RAW.startswith("http"):
+    RPC_URL = f"https://base-mainnet.g.alchemy.com/v2/{BASE_RPC_RAW}"
+else:
+    RPC_URL = BASE_RPC_RAW
+log.info(f"DEBUG: Using Final RPC_URL: {RPC_URL}")
+w3 = Web3(Web3.HTTPProvider(RPC_URL, request_kwargs={"timeout": 10}))
 # Ensure we have a valid URL schema
 BASE_RPC_RAW = os.environ.get("BASE_RPC", "https://mainnet.base.org")
 RPC_URL = BASE_RPC_RAW if BASE_RPC_RAW.startswith("http") else f"https://{BASE_RPC_RAW}"
