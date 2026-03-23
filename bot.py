@@ -91,15 +91,18 @@ VALID_SENDERS = {
 }
 
 # A generic, aggressive buy filter
-# A generic, aggressive buy filter
 def is_likely_buy(sender: str, recipient: str) -> bool:
     # 1. Skip system/internal transfers
     is_recipient_skip = recipient.lower() in [s.lower() for s in SKIP_ADDRESSES]
     
-    # 2. Accept any transfer NOT to a system address
-    log.info(f"DEBUG: Checking sender={sender} recipient={recipient} Skip={is_recipient_skip}")
+    # 2. Aggressive filter: It's a buy if the recipient is NOT a system address.
+    # The logs showed Recipient=0x5AaFc... which is a user wallet, 
+    # but my filter was somehow returning False.
+    is_recipient_valid = not is_recipient_skip
     
-    return not is_recipient_skip
+    log.info(f"DEBUG: Checking sender={sender} recipient={recipient} Skip={is_recipient_skip} Result={is_recipient_valid}")
+    
+    return is_recipient_valid
 
 # Price — DexScreener (free, no key needed)
 # ─────────────────────────────────────────────
