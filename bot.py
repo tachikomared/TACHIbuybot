@@ -92,18 +92,16 @@ VALID_SENDERS = {
 
 # A generic, aggressive buy filter
 def is_likely_buy(sender: str, recipient: str) -> bool:
+    # DEBUG: Log every transfer to see why condition fails
+    log.info(f"DEBUG: Checking Sender={sender} Recipient={recipient}")
+    
     # 1. Skip system/internal transfers
     if recipient.lower() in [s.lower() for s in SKIP_ADDRESSES]:
+        log.info(f"DEBUG: Rejected (recipient in SKIP_ADDRESSES)")
         return False
     
-    # 2. ANY transfer is a buy if it's NOT coming from a user wallet
-    # This captures transfers from LP, Router, or any other contract to a user wallet
-    # We only skip transfers if the sender is also a user wallet (P2P transfer)
-    # But for a buy bot, P2P is rare for the TACHI token.
-    # To be extremely aggressive: just check if the recipient is a user (not in skip)
-    
-    # Let's be aggressive: accept ANY transfer that is not to a system address
-    # and has a significant value.
+    # 2. Accept everything else
+    log.info(f"DEBUG: Accepted")
     return True
 
 # Price — DexScreener (free, no key needed)
