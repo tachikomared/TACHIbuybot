@@ -91,18 +91,15 @@ VALID_SENDERS = {
 }
 
 # A generic, aggressive buy filter
+# A generic, aggressive buy filter
 def is_likely_buy(sender: str, recipient: str) -> bool:
-    # DEBUG: Log every transfer to see why condition fails
-    log.info(f"DEBUG: Checking Sender={sender} Recipient={recipient}")
-    
     # 1. Skip system/internal transfers
-    if recipient.lower() in [s.lower() for s in SKIP_ADDRESSES]:
-        log.info(f"DEBUG: Rejected (recipient in SKIP_ADDRESSES)")
-        return False
+    is_recipient_skip = recipient.lower() in [s.lower() for s in SKIP_ADDRESSES]
     
-    # 2. Accept everything else
-    log.info(f"DEBUG: Accepted")
-    return True
+    # 2. Accept any transfer NOT to a system address
+    log.info(f"DEBUG: Checking sender={sender} recipient={recipient} Skip={is_recipient_skip}")
+    
+    return not is_recipient_skip
 
 # Price — DexScreener (free, no key needed)
 # ─────────────────────────────────────────────
