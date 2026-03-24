@@ -288,7 +288,7 @@ async def watcher_loop(bot: Bot):
                         # supports_streaming=True makes it play instantly
                         await bot.send_video(
                             chat_id=CHAT_ID,
-                            video="https://raw.githubusercontent.com/tachikomared/TACHIbuybot/master/media/tachi.mp4",
+                            video="https://raw.githubusercontent.com/tachikomared/TACHIbuybot/master/media/tachi_v2.mp4",
                             caption=build_message(event, tx_hash, price),
                             parse_mode=ParseMode.MARKDOWN,
                             supports_streaming=True
