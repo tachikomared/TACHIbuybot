@@ -284,23 +284,28 @@ async def watcher_loop(bot: Bot):
                         continue
 
                     try:
+                        # Attempt to send photo
                         await bot.send_photo(
                             chat_id=CHAT_ID,
-                            photo="https://raw.githubusercontent.com/tachikomared/TACHIbuybot/master/media/tachi.jpg",
+                            photo="https://raw.githubusercontent.com/tachikomared/TACHIbuybot/master/media/tachi.gif",
                             caption=build_message(event, tx_hash, price),
                             parse_mode=ParseMode.MARKDOWN
                         )
-                    except Exception:
-                        await bot.send_message(
-                            chat_id=CHAT_ID,
-                            text=build_message(event, tx_hash, price),
-                            parse_mode=ParseMode.MARKDOWN,
-                            disable_web_page_preview=False,
-                        )
                         state["buys_posted"] += 1
-                        log.info(f"Buy posted ${usd:.2f} | {tx_hash}")
+                        log.info(f"Buy posted (with gif) ${usd:.2f} | {tx_hash}")
                     except Exception as e:
-                        log.error(f"Send failed: {e}")
+                        # Fallback to message
+                        try:
+                            await bot.send_message(
+                                chat_id=CHAT_ID,
+                                text=build_message(event, tx_hash, price),
+                                parse_mode=ParseMode.MARKDOWN,
+                                disable_web_page_preview=False,
+                            )
+                            state["buys_posted"] += 1
+                            log.info(f"Buy posted (text fallback) ${usd:.2f} | {tx_hash}")
+                        except Exception as e2:
+                            log.error(f"Send failed: {e2}")
 
                     seen_txs.add(tx_hash)
 
