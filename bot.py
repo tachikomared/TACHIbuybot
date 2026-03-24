@@ -284,15 +284,17 @@ async def watcher_loop(bot: Bot):
                         continue
 
                     try:
-                        # Attempt to send animation explicitly
-                        await bot.send_animation(
+                        # Use send_video for better iOS compatibility
+                        # supports_streaming=True makes it play instantly
+                        await bot.send_video(
                             chat_id=CHAT_ID,
-                            animation="https://raw.githubusercontent.com/tachikomared/TACHIbuybot/master/media/tachi.gif",
+                            video="https://raw.githubusercontent.com/tachikomared/TACHIbuybot/master/media/tachi.mp4",
                             caption=build_message(event, tx_hash, price),
-                            parse_mode=ParseMode.MARKDOWN
+                            parse_mode=ParseMode.MARKDOWN,
+                            supports_streaming=True
                         )
                         state["buys_posted"] += 1
-                        log.info(f"Buy posted (with animation) ${usd:.2f} | {tx_hash}")
+                        log.info(f"Buy posted (with video) ${usd:.2f} | {tx_hash}")
                     except Exception as e:
                         # Fallback to message
                         try:
