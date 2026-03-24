@@ -53,9 +53,16 @@ def get_emoji(usd: float) -> str:
     return "🐟"
 
 def get_bar(usd: float) -> str:
-    # Scale: 1 crab per $50, max 10 crabs
-    num_crabs = min(int(usd / 50) + 1, 10)
-    return "🦀" * num_crabs + "⬜" * (10 - num_crabs)
+    # 🦀 scaling:
+    # < $10: 1 crab
+    # $10 - $50: 2 crabs
+    # $50 - $100: 3 crabs
+    # $100+: +1 crab per $100, max 10
+    if usd < 10: return "🦀"
+    if usd < 50: return "🦀🦀"
+    if usd < 100: return "🦀🦀🦀"
+    num_crabs = min(3 + int(usd / 100), 10)
+    return "🦀" * num_crabs
 
 # ─────────────────────────────────────────────
 #  Web3
