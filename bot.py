@@ -53,8 +53,9 @@ def get_emoji(usd: float) -> str:
     return "🐟"
 
 def get_bar(usd: float) -> str:
-    filled = min(int(usd / 50), 10)
-    return "🟢" * filled + "⬜" * (10 - filled)
+    # Scale: 1 crab per $50, max 10 crabs
+    num_crabs = min(int(usd / 50) + 1, 10)
+    return "🦀" * num_crabs + "⬜" * (10 - num_crabs)
 
 # ─────────────────────────────────────────────
 #  Web3
@@ -276,6 +277,13 @@ async def watcher_loop(bot: Bot):
                         continue
 
                     try:
+                        await bot.send_photo(
+                            chat_id=CHAT_ID,
+                            photo="https://raw.githubusercontent.com/tachikomared/TACHIbuybot/master/media/tachi.jpg",
+                            caption=build_message(event, tx_hash, price),
+                            parse_mode=ParseMode.MARKDOWN
+                        )
+                    except Exception:
                         await bot.send_message(
                             chat_id=CHAT_ID,
                             text=build_message(event, tx_hash, price),
