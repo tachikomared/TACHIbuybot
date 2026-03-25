@@ -98,19 +98,28 @@ VALID_SENDERS = {
     "0xdc5d8200a030798bc6227240f68b4dd9542686ef", # The Router
 }
 
-# A generic, aggressive buy filter
+# ─────────────────────────────────────────────
+#  Buy Detection
+#  A BUY = tokens flow FROM a known pool/router TO a user wallet
+#  A SELL = tokens flow FROM a user wallet TO a known pool/router
+# ─────────────────────────────────────────────
+KNOWN_POOLS = {
+    "0x498581fF718922c3f8e6A244956aF099B2652b2b",  # Uniswap V4 PoolManager
+    "0xdc5d8200a030798bc6227240f68b4dd9542686ef",  # Router
+    "0xeefc0bd924650625a7edfcc64406689335cbabb82504f5d9b028a26754d90985",  # Liquidity Pool
+}
+
 def is_likely_buy(sender: str, recipient: str) -> bool:
-    # 1. Skip system/internal transfers
-    is_recipient_skip = recipient.lower() in [s.lower() for s in SKIP_ADDRESSES]
+    s = sender.lower()
+    r = recipient.lower()
     
-    # 2. Aggressive filter: It's a buy if the recipient is NOT a system address.
-    # The logs showed Recipient=0x5AaFc... which is a user wallet, 
-    # but my filter was somehow returning False.
-    is_recipient_valid = not is_recipient_skip
+    # Must be FROM a pool/router
+    is_from_pool = s in [p.lower() for p in KNOWN_POOLS]
     
-    log.info(f"DEBUG: Checking sender={sender} recipient={recipient} Skip={is_recipient_skip} Result={is_recipient_valid}")
+    # Must NOT be going BACK to a pool (which would be internal rebalancing)
+    is_to_user = r not in [p.lower() for p in KNOWN_POOLS] and r not in [a.lower() for a in SKIP_ADDRESSES]
     
-    return is_recipient_valid
+    return is_from_pool and is_to_user
 
 # Price — DexScreener (free, no key needed)
 # ─────────────────────────────────────────────
